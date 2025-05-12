@@ -2,6 +2,7 @@ package com.intelliswarm.aiagentcollaboration.agent;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class TaskSolvingAgent extends AbstractAgent {
     private static final String TASK_COMPLETED = "TASK_COMPLETED";
@@ -27,15 +28,18 @@ public class TaskSolvingAgent extends AbstractAgent {
 
     private void handleHelpRequest(String message) {
         String task = message.substring(REQUEST_HELP.length()).trim();
-        System.out.println(name + " is helping with task: " + task);
-        // Simulate task processing
-        try {
-            Thread.sleep(1000);
-            sendMessage(message.split(":")[1], TASK_COMPLETED + ": " + task);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            sendMessage(message.split(":")[1], TASK_FAILED + ": " + task);
-        }
+        String targetAgentId = message.split(":")[1];
+        
+        CompletableFuture.runAsync(() -> {
+            try {
+                System.out.println(name + " is helping with task: " + task);
+                Thread.sleep(1000); // Simulate task processing
+                sendMessage(targetAgentId, TASK_COMPLETED + ": " + task);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                sendMessage(targetAgentId, TASK_FAILED + ": " + task);
+            }
+        });
     }
 
     private void handleTaskCompletion(String message) {
