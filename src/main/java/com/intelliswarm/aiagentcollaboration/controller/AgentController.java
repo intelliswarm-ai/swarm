@@ -2,6 +2,8 @@ package com.intelliswarm.aiagentcollaboration.controller;
 
 import com.intelliswarm.aiagentcollaboration.agent.Agent;
 import com.intelliswarm.aiagentcollaboration.agent.TaskSolvingAgent;
+import org.springframework.experimental.mcp.McpClient;
+import org.springframework.experimental.mcp.McpServer;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
@@ -12,15 +14,21 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AgentController {
     private final Map<String, Agent> agents = new ConcurrentHashMap<>();
     private final SimpMessagingTemplate messagingTemplate;
+    private final McpClient mcpClient;
+    private final McpServer mcpServer;
 
-    public AgentController(SimpMessagingTemplate messagingTemplate) {
+    public AgentController(SimpMessagingTemplate messagingTemplate,
+                          McpClient mcpClient,
+                          McpServer mcpServer) {
         this.messagingTemplate = messagingTemplate;
+        this.mcpClient = mcpClient;
+        this.mcpServer = mcpServer;
     }
 
     @PostMapping
     public Agent createAgent(@RequestParam String name) {
         String id = "agent-" + System.currentTimeMillis();
-        Agent agent = new TaskSolvingAgent(id, name, messagingTemplate);
+        Agent agent = new TaskSolvingAgent(id, name, messagingTemplate, mcpClient, mcpServer);
         agents.put(id, agent);
         return agent;
     }

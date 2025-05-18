@@ -73,6 +73,39 @@ The application uses WebSocket for real-time communication between agents. Agent
 - `/topic/agent/{agentId}` - Channel for receiving messages
 - `/app/message` - Endpoint for sending messages
 
+## Spring AI MCP Communication
+
+In addition to WebSocket messaging, this demo leverages Spring AI's MCP (Message Communication Protocol) to enable tool-based communication between agents. A global `McpServer` and `McpClient` are configured in `McpConfig`.
+
+Agents register tools (for example, `help`) on the server and invoke other agents' tools via the client, receiving reactive responses as `Mono<Map<String, Object>>`.
+
+```java
+@Configuration
+public class McpConfig {
+
+    @Bean
+    public McpServer mcpServer() {
+        return McpServer.create();
+    }
+
+    @Bean
+    public McpClient mcpClient(McpServer mcpServer) {
+        return McpClient.create(mcpServer);
+    }
+}
+```
+
+For example, a `TaskSolvingAgent` sets up a `help` tool on startup. To request help:
+
+```java
+mcpClient.callTool(
+        "agent-2",      // target agent ID
+        "help",         // tool name
+        Map.of("task", "Solve this task", "priority", 1)
+)
+        .subscribe(response -> /* handle result */);
+```
+
 ## Architecture
 
 The demo implements a simple agent system with the following components:
