@@ -37,6 +37,8 @@ out/
 *.code-workspace
 .history/
 
+.ENV
+
 ### Eclipse ###
 .apt_generated
 .classpath
